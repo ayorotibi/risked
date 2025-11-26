@@ -1,0 +1,17 @@
+python-dotenv
+ipykernel
+pandas
+numpy
+streamlit 1.51
+plot
+pgmpy
+plotly
+graphviz
+python-docx 
+networkx
+seaborn
+jupyter
+scikit-learn
+scipy
+requests
+
