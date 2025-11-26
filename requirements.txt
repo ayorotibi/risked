@@ -2,7 +2,7 @@ python-dotenv
 ipykernel
 pandas
 numpy
-streamlit 1.51
+streamlit
 plot
 pgmpy
 plotly
@@ -14,4 +14,3 @@ jupyter
 scikit-learn
 scipy
 requests
-
