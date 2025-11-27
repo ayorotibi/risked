@@ -24,7 +24,7 @@ st.markdown("""
     }
     .highlight {
         font-size:18px !important;
-        color:#000000;  
+        color:#2E86C1;  
         font-weight:bold;
     }
     </style>
@@ -38,17 +38,26 @@ st.markdown("<p class='subtitle'>This is a Proof of Concept (PoC)</p>", unsafe_a
 
 sentence1 = """
 "If you know the enemy and know yourself; in a hundred battles, you will never be defeated" - Sun Tzu.
+"""
+
+sentence2 = """
 This Tool provides a left-shift methodology to knowing yourself (System). It is built for Complex systems such as Industrial Control Systes (ICS), Oil & Gas,
 Manufacturing process, Transportation, etc. to identify and assess cyber risks in a system.
 """
 
-sentence2 = """
+
+sentence3 = """
 Please, use the sidebar to select a process to run. 
 For best results, please follow the steps in alphabetical order.
 """
 
-st.markdown(f"<p class='highlight'>{sentence1}</p>", unsafe_allow_html=True)
+st.markdown("""
+##### "If you know the enemy and know yourself; in a hundred battles, you will never be defeated" - Sun Tzu.
+""")
+#st.markdown(f"<p class='highlight'>{sentence1}</p>", unsafe_allow_html=True)
+
 st.markdown(f"<p class='highlight'>{sentence2}</p>", unsafe_allow_html=True)
+st.markdown(f"<p class='highlight'>{sentence3}</p>", unsafe_allow_html=True)
 
 st.markdown("""
 ### How to use this Tool:

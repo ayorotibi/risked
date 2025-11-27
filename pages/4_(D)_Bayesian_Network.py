@@ -82,7 +82,7 @@ status1.text("Loading initial data...")
 
 csv_file = 'data_model.csv'
 if not os.path.exists(csv_file):
-    st.error("❌ The file 'data_model.csv' was not found. You may have missed a step in the analysis sequence. Please ensure you have generated the dependency model before proceeding.")
+    st.error("The required file to perform this analysis was not found. You may have missed a step in the analysis sequence. Please ensure you have generated the dependency model before proceeding.")
     st.stop()
 else:
     df = pd.read_csv('data_model.csv')

@@ -201,7 +201,7 @@ if st.button("Generate and Download Report"):
     missing_files = [f for f in required_files if not os.path.isfile(f)]
     
     if missing_files:
-        st.error(f"The required file(s) are missing to perform this process. "
+        st.error(f"The required file(s) to perform this process are missing."
         "You may have missed a step in the analysis sequence. "
         "Please complete the previous analysis steps to generate these files before proceeding.")
         st.stop()

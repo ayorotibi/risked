@@ -254,7 +254,7 @@ if os.path.exists(CSV_FILE):
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
 else:
-    st.error(f"❌ Error: CSV file '{CSV_FILE}' not found in the app directory.")
+    st.error(f"The required file to generate this report was not found. You may have missed a step in the analysis sequence. Please ensure you have performed previous steps.")
 
 st.caption("This is a PoC and it is powered by Groq and Llama 3. In the full version, this is powered by our purpose-built genAI for Cyber risk identification and assessement.")
 
