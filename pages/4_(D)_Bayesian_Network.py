@@ -8,6 +8,7 @@ from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 from joblib import Parallel, delayed
 import gc
+import os
 
 
 # -----------------------------------------------------------------------------
@@ -49,7 +50,11 @@ st.markdown("""
 st.markdown("<p class='title'>Bayesian Network & Sensitivity Analysis Dashboard</p>", unsafe_allow_html=True)
 
 sentence = """
-This process performs the statistical analysis on Bayesian Network, Causal Inference, and Variable Elimination to determine the sensitivity of each component within the dependency tree.
+The module guides users through five main steps: analysing dependencies, computing posterior probabilities, performing multi-nodal and single-point sensitivity analyses, 
+building the Bayesian Network, and extracting variable elimination results. This is essential for understanding how changes in one part of the system affect overall risk.
+Throughout, the module provides progress feedback, and enables users to end the module when complete.  
+This makes it suitable for risk modelling, scenario analysis, and decision support in complex systems. The results are saved for further analysis and reporting in Stage 5 (E).
+
 """
 
 st.markdown(f"<p class='highlight'>{sentence}</p>", unsafe_allow_html=True)
@@ -74,7 +79,16 @@ progress1 = st.progress(0)
 status1 = st.empty()
 status1.text("Loading initial data...")
 
-df = pd.read_csv('data_model.csv')
+
+csv_file = 'data_model.csv'
+if not os.path.exists(csv_file):
+    st.error("❌ The file 'data_model.csv' was not found. You may have missed a step in the analysis sequence. Please ensure you have generated the dependency model before proceeding.")
+    st.stop()
+else:
+    df = pd.read_csv('data_model.csv')
+
+
+
 top_categories = {'Security Goal', 'People', 'Technology', 'Process'}
 parent_lookup = dict(zip(df['child_value'], df['rootnode']))
 
@@ -153,8 +167,22 @@ progress2 = st.progress(0)
 status2 = st.empty()
 status2.text("Loading coefficients...")
 
-response = pd.read_csv(intermediate_file)
-coeff = pd.read_csv('data_coeff.csv')
+
+
+if not os.path.exists(intermediate_file):
+    st.error(f"❌ The file '{intermediate_file}' was not found. You may have missed a step in the analysis sequence. Please ensure you have completed the dependency computation before proceeding.")
+    st.stop()
+else:
+    response = pd.read_csv(intermediate_file)
+
+
+coeff_file = 'data_coeff.csv'
+if not os.path.exists(coeff_file):
+    st.error("❌ The file 'data_coeff.csv' was not found. You may have missed a step in the analysis sequence. Please ensure you have uploaded or generated the coefficients file before proceeding.")
+    st.stop()
+else:
+    coeff = pd.read_csv(coeff_file)
+
 coeff['mcoefficient'] = coeff['mcoefficient'] / 100
 people_sp, process_sp, tech_sp, system_sp = coeff["mcoefficient"].iloc[:4]
 cp_map = {
@@ -261,7 +289,7 @@ sensitivity = {
 sensitivity = pd.DataFrame(sensitivity)
 sensitivity.to_csv("sensitivity_p.csv", index=False)
 progress3.progress(100)
-status3.text("Sensitivity analysis complete and saved.")
+status3.text("Sensitivity analysis completed.")
 
 # Step 4: Bayesian Network & Variable Elimination
 st.header("Step 4: Extract Bayesian Network & Variable Elimination")
@@ -314,13 +342,13 @@ leaf = leaf_candidates[0] if leaf_candidates else nodes[-1]
 root_result = inference.query(variables=[root])
 leaf_result = inference.query(variables=[leaf], evidence={root: 1})
 
-progress4.progress(60)
+progress4.progress(100)
 status4.text("Inference completed.")
 
-st.subheader(f"Marginal probability for root node '{root}':")
-st.write(root_result)
-st.subheader(f"Probability for leaf node '{leaf}' given {root}=1:")
-st.write(leaf_result)
+# st.subheader(f"Marginal probability for root node '{root}':")
+# st.write(root_result)
+# st.subheader(f"Probability for leaf node '{leaf}' given {root}=1:")
+# st.write(leaf_result)
 
 # Step 5: Onefold Sensitivity Analysis
 st.header("Step 5: Onefold Sensitivity Analysis")
@@ -353,11 +381,11 @@ for i in range(0, len(analysis_nodes), chunk_size):
     status5.text(f"Processed {i + len(chunk)} of {len(analysis_nodes)} nodes...")
     gc.collect()
 progress5.progress(100)
-status5.text("Single Point sensitivity analysis complete.")
+status5.text("Single Point sensitivity analysis completed.")
 
-onefold_df = pd.read_csv('one_point_sensitivity.csv')
-onefold_df = onefold_df.sort_values(by='root_prob_given_node0', ascending=False)
-top10_df = onefold_df.head(10)
+# onefold_df = pd.read_csv('one_point_sensitivity.csv')
+# onefold_df = onefold_df.sort_values(by='root_prob_given_node0', ascending=False)
+# top10_df = onefold_df.head(10)
 
 # st.subheader("Top 10 Nodes by Sensitivity")
 # fig, ax = plt.subplots(figsize=(12, 6))
@@ -366,7 +394,7 @@ top10_df = onefold_df.head(10)
 # plt.ylabel(f"P({root}=1 | node=0)")
 # plt.title("Onefold Sensitivity Analysis (Top 10 Nodes)")
 # plt.tight_layout()
-#st.pyplot(fig)
+# st.pyplot(fig)
 
 st.success("All analyses complete. Results saved as CSV and PNG files.")
 

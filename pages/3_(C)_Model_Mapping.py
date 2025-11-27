@@ -39,9 +39,10 @@ st.markdown("""
 st.markdown("<p class='title'>System Dependency Model Builder</p>", unsafe_allow_html=True)
 
 sentence = """
-This Module allows users to build a System Dependency Model by defining root and child nodes.
-The dependency tree is connected by relationships among components, based on information provided by the user.
-This POC is limited to 30 nodes. You will be able to downloasd your system model graph as a PNG image at the end of the module.
+This Module enables users to interactively build, visualise, and manage a System Dependency Model as a directed graph. 
+You can define nodes, specify dependencies, and assign probabilities to leaf nodes (nodes without dependants). 
+The module supports adding, editing, and deleting nodes, with built-in safeguards for the default nodes ("People", "Technology", and "Process") 
+and a maximum limit of 30 nodes. You will be able to download your system model graph (Dependency Model) as a PNG image at the end of the module.
 """
 
 st.markdown(f"<p class='highlight'>{sentence}</p>", unsafe_allow_html=True)
@@ -341,9 +342,22 @@ if st.button("Click to Generate the System Model Graph"):
     #st.success("Dependency graph saved as system_model_graph.png!")
     st.session_state.show_download = True
 
-# Show download button if requested
+
+# --- Check for only default nodes ---
+default_nodes = {"People", "Technology", "Process"}
+current_nodes = set(df['child_value'].unique()) if not df.empty and 'child_value' in df.columns else set()
+
+if current_nodes == default_nodes and len(df) == 3:
+    #st.warning("⚠️ The model only contains the default nodes. The PNG image will be blank. Please add more nodes before downloading.")
+    download_allowed = False
+else:
+    download_allowed = True
+
+# Show download button if allowed
 if st.session_state.get("show_download", False):
-    if os.path.exists("system_model_graph.png"):
+    if not download_allowed:
+        st.info("Download is disabled until you add nodes to the model.")
+    elif os.path.exists("system_model_graph.png"):
         with open("system_model_graph.png", "rb") as img_file:
             st.download_button(
                 label="Download System Model Graph",
@@ -351,11 +365,10 @@ if st.session_state.get("show_download", False):
                 file_name="system_model_graph.png",
                 mime="image/png"
             )
+
     # Show a finish button to end the module
     if st.button("Finish"):
         st.session_state.ended = True
         st.session_state.show_download = False
         st.rerun()
 
-# if st.session_state.ended:
-#     st.info("Module ended. You can close this tab or stop the Streamlit server.")

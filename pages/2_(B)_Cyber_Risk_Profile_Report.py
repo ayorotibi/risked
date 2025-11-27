@@ -225,8 +225,17 @@ if os.path.exists(CSV_FILE):
     else:
         csv_content = response_df.to_csv(index=False)
         analysis_result = generate_cybersecurity_analysis(csv_content, API_KEY, MODEL)
-        if analysis_result.startswith("❌"):
+           
+        
+        if analysis_result.startswith("❌ API Error: 401") or "invalid_api_key" in analysis_result.lower():
+            st.error(
+                "Please provide a valid API key to proceed. "
+                "You may go to Groq/Llama to generate a free API Key, if you do not have one."
+                )
+        elif analysis_result.startswith("❌"):
             st.error(analysis_result)
+   
+            
         else:
             #st.header("Cybersecurity Analysis Report")
             st.markdown(analysis_result)

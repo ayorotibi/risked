@@ -5,6 +5,8 @@ import docx
 from datetime import datetime
 import io
 
+st.session_state.ended = False
+
 # Custom CSS for styling
 st.markdown("""
     <style>
@@ -30,13 +32,13 @@ st.markdown("""
 st.markdown("<p class='title'>Risk Analysis Report Generator</p>", unsafe_allow_html=True)
 
 sentence = """
-This process generates the Risk Analysis Report based on the outcome of the Sensitivity analysis from Option D
+This module generates a comprehensive Cyber Risk and Resiliency Report for industrial systems, using the results of a prior sensitivity analysis. 
+ It prompts the user for an API key and business sector. The tool constructs a detailed prompt and sends it to an AI model to produce a report tailored for senior leadership. 
+ The generated report is displayed in the tool and can be downloaded as a formatted Word document. 
+ The report covers executive summary, risk analysis, sensitivity outcomes, and actionable recommendations, all based on the system’s dependency structure and risk metrics. 
 """
 
 st.markdown(f"<p class='highlight'>{sentence}</p>", unsafe_allow_html=True)
-
-
-st.session_state.ended = False
 
 
 if 'ended' not in st.session_state:
@@ -45,13 +47,6 @@ if 'ended' not in st.session_state:
 if st.session_state.ended:
       st.info("The Module produced the Reports. It is the last action to be performed. Please close this tab and return to the RISKED Menu tab.")
       st.stop()
-
-# --- Streamlit App ---
-#st.set_page_config(page_title="RiskED - Risk Analysis Report", layout="wide")
-# st.title("Risk Analysis Report Generator")
-# st.markdown("""
-# This process generates the Risk Analysis Report based on the outcome of the Sensitivity analysis from Option D.
-# """)
 
 
 # --- CONFIGURATION ---
@@ -87,8 +82,6 @@ sector = st.sidebar.text_input(
 if not sector:
     st.warning("Please enter your organisation's Sector in the sidebar to continue.")
     st.stop()
-
-
 
 
 PROMPT_TEMPLATE = """
@@ -203,15 +196,16 @@ def generate_word_report(report, sector):
     buffer.seek(0)
     return buffer
 
-
-
-
-
 if st.button("Generate and Download Report"):
     # Step 1: Check files
     missing_files = [f for f in required_files if not os.path.isfile(f)]
+    
     if missing_files:
-        st.error(f"Missing required files: {', '.join(missing_files)}. Please ensure these files are in the script directory.")
+        st.error(f"The required file(s) are missing to perform this process. "
+        "You may have missed a step in the analysis sequence. "
+        "Please complete the previous analysis steps to generate these files before proceeding.")
+        st.stop()
+    
     else:
         file_texts = {filename: read_file_as_text(filename) or "" for filename in required_files}
         prompt = PROMPT_TEMPLATE.format(
@@ -221,7 +215,9 @@ if st.button("Generate and Download Report"):
         )
         report = call_groq(prompt, api_key, MODEL)
         if report.startswith("API Error") or report.startswith("Unexpected Error"):
-            st.error(report)
+            st.error(f"Please provide a valid API key to proceed. You may go to Groq/Llama to generate a free API Key, if you do not have one.")
+            st.stop()
+            #st.error(report)
         else:
             # Display the report on the screen
             st.subheader("Generated Risk Analysis Report")
