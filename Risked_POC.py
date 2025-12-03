@@ -7,6 +7,15 @@ st.set_page_config(
     layout="centered"
 )
 
+
+# Sidebar YouTube link
+youtube_url = "https://youtu.be/wZ1Z-zc2X3c"   # Replace with your actual video link
+st.sidebar.markdown(
+    f'<a href="{youtube_url}" target="_blank">▶️ Click to watch an Intro video on YouTube</a>',
+    unsafe_allow_html=True
+)
+
+
 # Custom CSS for styling
 st.markdown("""
     <style>

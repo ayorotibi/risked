@@ -146,8 +146,8 @@ try:
     df = pd.read_csv(csv_file) if os.path.exists(csv_file) else pd.DataFrame()
     st.subheader("Node Dependency Records")
     st.dataframe(df)
-    #dot = visualize_dependencies(df)
-    dot = Digraph(comment="System (Dependency) Tree")
+    dot = visualize_dependencies(df)
+    #dot = Digraph(comment="System (Dependency) Tree")
 except Exception as e:
     st.error(f"Failed to load data: {str(e)}")
     df = pd.DataFrame()

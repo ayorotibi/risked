@@ -85,46 +85,60 @@ if not sector:
 
 
 PROMPT_TEMPLATE = """
+
 Business Sector: {sector}
-You are an AI expert in cybersecurity risk analysis for complex industrial systems like SCADA and ICS. Your specialty is using probabilistic models to understand how failures and attacks can propagate through interdependent components. You have encyclopedic knowledge of relevant standards, including MITRE ATT&CK for ICS, NIST SP 800-82, ISA/IEC 62443, and others listed.
+
+You are an AI expert in cybersecurity risk analysis for industrial systems (e.g., SCADA, ICS). Your expertise includes probabilistic modelling, sensitivity analysis, and interpreting how failures or attacks propagate through complex dependencies. You are familiar with standards such as MITRE ATT&CK for ICS, NIST SP 800-82, and ISA/IEC 62443.
+
 You are provided with two CSV files:
 - one_point_sensitivity.csv
 - data_model_with_posterior.csv
-Generate a comprehensive Cyber Risk and Resiliency Report based on an analysis of two provided CSV files: one_point_sensitivity.csv and data_model_with_posterior.csv. The report must be accessible to a non-technical senior leadership audience (e.g., CISO, CRO, Asset Owners) while being analytically rigorous.
-Try to use your own word, rathar than copying large chunks of the prompt. Avoild repeating the same phrases and words used as examples in the prompt.
-Step-by-Step Instructions:
-Step 1: Data Interpretation & Setup
-The primary data for sensitivity analysis is in the one_point_sensitivity.csv file.
-Identify the prob_given_node0 column. This represents the Probability Sensitivity Score. This score states that if the given node (leaf node) were to be made perfectly unreliable (0% chance of sucess), the score indicates the new marginal (success) probability of the root node.
-Interpretation Rule: A lower percentage in the prob_given_node0 column indicates a more critical node. This is how faw away from 100%. Therefore, treat this as a core metric for your analysis.
-Use the data_model_with_posterior.csv to understand the system's structure, dependencies, and the baseline probabilities (e.g., the marginal probability of the root node).
-When reporting any probability or sensitivity score, always format it as a percentage with two decimal places (e.g., report 0.2134300300 as 21.34%).
-Step 2: Generate the Report - Structure and Content
-Structure your report exactly into the following four parts:
-Part 1: Executive Summary
-System Structure Overview: Provide a high-level, non-technical description of the system based on the dependency model. Explain what the "root node" represents (e.g., "Overall System Availability" or "Core Production Process").
-Overall System Risk: State the current marginal probability of the root node. Explain what this probability means in business terms (e.g., "a 15% probability of a major operational disruption").
-System Characteristics: Briefly mention the dependency depth, interactive complexity, and coupling among nodes, explaining what these mean for system stability and risk management.
-Key Risk Points: Identify the most critical leaf node(s) from your sensitivity analysis and summarize their potential impact on the overall system's performance.
-Part 2: Detailed Probabilistic Risk Analysis
-Use clear, professional language to answer these three classic risk analysis questions. Assume the reader is a manager, not an engineer.
-What can go wrong? Based on the dependency model and sensitivity scores, define 2-3 plausible failure scenarios. Describe them in terms of business operations (e.g., "A failure in the 'Historian Database' node could lead to a loss of process visibility for operators").
-How likely is it to go wrong? For each scenario, provide a qualitative assessment (e.g., "Moderately Likely") supported by the quantitative data from the model (mention the relevant probabilities from the CSV files).
-What are the consequences? For each scenario, evaluate the potential business, safety, regulatory, and financial impacts. Connect these consequences to the frameworks you know (e.g., "This scenario aligns with the MITRE ATT&CK technique T880: Loss of View and could lead to non-compliance with NERC CIP standards").
-Part 3: Sensitivity Analysis Outcomes
-This section should be data-driven and prescriptive.
-Top 5 Critical Nodes: List the top 5 most critical leaf nodes, ranked by their Probability Sensitivity Score (remember: lower percentage = more critical).
-Impact Analysis: For each of these 5 nodes, explain:
-How a failure in that node would impact the probability of the root node failing.
-How the root node's risk would improve (i.e., its failure probability would decrease) if that specific leaf node were guaranteed to be 100% reliable.
-Part 4: Recommendations & Strategic Reminders
-Targeted Mitigation Strategies: Provide specific, actionable recommendations to address the top 5 critical nodes identified. Your suggestions should be based on the system's state and the sensitivity relationships. For example, "For the highly sensitive 'PLC Controller A,' implement application whitelisting as per ISA-62443-3-3."
-Standard Security Hygiene: Include two concluding paragraphs on foundational security practices. Frame these as essential, non-negotiable basics. Base this reminder on your knowledge of the relevant framework, standards and regulations.
-Here are the CSV file contents:
+
+**File Descriptions:**
+- *one_point_sensitivity.csv*: Results of single-node sensitivity analysis. The key column, `prob_given_node0`, shows the marginal probability of the root node if a given leaf node fails completely (0% reliability).
+- *data_model_with_posterior.csv*: Contains the Bayesian Network structure, node dependencies, and baseline probabilities, including the root node.
+
+**Task:**  
+Generate a comprehensive Cyber Risk and Resiliency Report for senior leadership (CISO, CRO, Asset Owners). The report should be accessible to non-technical readers but analytically rigorous. Use your own words and avoid copying phrases from this prompt.
+In producing your report, please mutiply all probabilities by 100 to convert them into percentages with two decimal places.
+**Report Structure:**
+
+1. **Executive Summary**
+   - Briefly describe the system and its dependency model.
+   - Explain the meaning of the "root node" (e.g., overall system availability).
+   - State the current marginal probability of the root node and interpret its business impact.
+   - Summarise key system characteristics (dependency depth, complexity, coupling).
+   - Highlight the most critical leaf nodes and their impact.
+
+2. **Probabilistic Risk Analysis**
+   - Identify 2 to 3 plausible failure scenarios based on sensitivity scores and dependencies.
+   - For each scenario, explain:
+     - What can go wrong (business operations impact).
+     - How likely it is (qualitative and quantitative assessment).
+     - Potential consequences (business, safety, regulatory, financial), referencing relevant frameworks.
+
+3. **Sensitivity Analysis Outcomes**
+   - Use one_point_sensitivity.csv to identify the top 5 most critical leaf nodes (lowest Probability Sensitivity Scores).
+   - For each node, explain:
+     - How its failure affects the root node’s risk.
+     - How root node reliability improves if the node is fully reliable.
+     - Provide formatted Probability Sensitivity Scores (e.g., “Root node reliability improves to 12.34% if Node X is fully reliable”).
+   - Use data_model_with_posterior.csv to discuss interdependencies and cascading effects.
+
+4. **Recommendations & Strategic Reminders**
+   - Suggest targeted mitigation strategies for the top 5 critical nodes, referencing standards where appropriate.
+   - Conclude with two paragraphs on essential security hygiene and foundational practices, referencing relevant frameworks.
+
+**Formatting Instructions:**
+- Format all probabilities and sensitivity scores as percentages with two decimal places (e.g., 21.34%).
+- Structure the report with clear headings and concise paragraphs.
+
+**Data Provided:**
 --- one_point_sensitivity.csv ---
 {one_point_sensitivity}
 --- data_model_with_posterior.csv ---
 {data_model_with_posterior}
+
 """
 
 def read_file_as_text(filename):
@@ -147,8 +161,8 @@ def call_groq(prompt, api_key, model):
                 "role": "system",
                 "content": (
                     "You are an AI expert in cybersecurity risk analysis for complex industrial systems like SCADA and ICS. "
-                    "Your specialty is using probabilistic models to understand how failures and attacks can propagate through interdependent components. "
-                    "Provide detailed, actionable analysis and recommendations. Be comprehensive and professional."
+                    "Your specialty is using Inference (Variable Elimination), Sensitivity Analysis & Parallelisation, probabilistic models to understand how failures and attacks can propagate through interdependent components. "
+                    "Provide detailed, actionable analysis and recommendations. Be comprehensive and professional. Let your ourput be professionally formatted for the audience of senior leadership (CISO, CRO, Asset Owners)."
                 )
             },
             {
@@ -235,3 +249,4 @@ st.markdown("---")
 if st.button("End Module"):
       st.session_state.ended = True
       st.rerun()
+      

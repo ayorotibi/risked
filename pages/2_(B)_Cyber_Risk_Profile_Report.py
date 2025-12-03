@@ -114,45 +114,72 @@ def call_groq(prompt, api_key, model):
 
 def generate_cybersecurity_analysis(csv_content, api_key, model):
     prompt = f"""
-ANALYZE THIS CYBERSECURITY PROFILE DATA AND GENERATE A COMPREHENSIVE REPORT:
+You are a cybersecurity risk and compliance expert with deep knowledge of the following 12 frameworks and standards: 
+ISA/IEC 62443 Series, NIST SP 800-82, ISO/IEC 27001, NIST Cybersecurity Framework (CSF), Cyber Essentials Plus, CIS Critical Security Controls, ENISA ICS Security Guidelines, CPNI Guidance, NIS2 Directive & EU Cyber Resilience Act, ISO/IEC 27019, NIST SP 800-53, ISA/IEC 61511.
+
+Below is a curated cybersecurity profile, with user responses and evidence mapped to these standards:
 [CSV DATA START]
 {csv_content}
 [CSV DATA END]
-I have used 12 cybersecurity frameworks and standards to curate the statements in this csv file. A user has provided responses to each of the statements. The 12 standards and framework are: ISA/IEC 62443 Series, NIST SP 800-82, ISO/IEC 27001, NIST Cybersecurity Framework (CSF), Cyber Essentials Plus, CIS Critical Security Controls (CIS Controls), ENISA ICS Security Guidelines, CPNI Guidance, NIS2 Directive & EU Cyber Resilience Act, ISO/IEC 27019, NIST SP 800-53, ISA/IEC 61511. Now, could you use the responses from the user, as shown in "Response" and "Evidence" columns in the CSV to determine and generate a holistic Cybersecurty profile for the user. Please note, "Strongly agreed" means they are fully compliant and "Strongly Disagree" means they are not compliant at all. The "Evidence" value will only be relevant if the user picked "Strongly Agree" or "Agreed". A "Not Applicable" response means the statement is not applicable to the user. The value in the "Weight" column, is used to determine how important the statement requirement is and how high the risk is if not compliant with high the risk is, where 4 is the highest. Please also include gap analysis and what the user could do to improve the cybersecurity posture/profile.
-Please structure your response as follows:
-# Profile Summary
-[Overall assessment of cybersecurity posture]
-**Overall Cybersecurity Maturity Score:** [Percentage score with explanation]
+
+**Instructions:**
+- Interpret the "Response" and "Evidence" columns to assess compliance, maturity, and risk. "Strongly Agree" = fully compliant; "Strongly Disagree" = not compliant; "Not Applicable" = exclude from scoring. Use "Evidence" only for "Strongly Agree" or "Agree".
+- Use the "Weight" column to prioritise gaps and risks (4 = highest risk/importance).
+- Synthesise findings across all frameworks, not just individually.
+- Provide a holistic, executive-level assessment, including strengths, weaknesses, and actionable recommendations.
+- Include a gap analysis and a clear improvement roadmap.
+
+**Report Structure:**
+
+# Cybersecurity Profile Summary
+- Executive overview of the user's cybersecurity posture, referencing strengths and weaknesses across the 12 frameworks.
+- **Overall Cybersecurity Maturity Score:** [Percentage score, with explanation of calculation and what it means for risk exposure]
+
 ---
+
 ## Detailed Gap Analysis & Improvement Plan
-### 1. System & Organizational Resilience
-* **Critical Gaps:**
-[List critical gaps]
-* **Recommendations:**
-[List specific recommendations]
+
+### 1. System & Organisational Resilience
+- **Critical Gaps:** [Summarise the most significant resilience gaps, referencing standards where relevant]
+- **Recommendations:** [Targeted actions to address these gaps]
+
 ### 2. Technology & Technical Controls
-* **Critical Gaps:**
-[List critical gaps]
-* **Recommendations:**
-[List specific recommendations]
+- **Critical Gaps:** [Highlight missing or weak technical controls, mapped to standards]
+- **Recommendations:** [Specific technical improvements]
+
 ### 3. Process & Governance
-* **Critical Gaps:**
-[List critical gaps]
-* **Recommendations:**
-[List specific recommendations]
+- **Critical Gaps:** [Identify process, policy, or governance weaknesses]
+- **Recommendations:** [Governance and process enhancements]
+
 ### 4. People & Awareness
-* **Critical Gaps:**
-[List critical gaps]
-* **Recommendations:**
-[List specific recommendations]
-## Conclusion and Strategic Next Steps
-**Immediate Priorities (Next 3-6 Months):**
-1. [Priority 1]
-2. [Priority 2]
-3. [Priority 3]
-**Long-term Strategic Goals (6-18 Months):**
-1. [Goal 1]
-2. [Goal 2]
+- **Critical Gaps:** [Summarise gaps in training, awareness, or human factors]
+- **Recommendations:** [Actions to improve culture and awareness]
+
+---
+
+## Strategic Roadmap
+
+**Immediate Priorities (Next 3–6 Months):**
+1. [Top priority action, with rationale]
+2. [Second priority]
+3. [Third priority]
+
+**Long-term Strategic Goals (6–18 Months):**
+1. [Major strategic goal, with rationale]
+2. [Second goal]
+
+---
+
+## Conclusion
+
+- Summarise the overall risk posture and the expected impact of following the recommendations.
+- Highlight how closing the identified gaps will improve compliance, resilience, and reduce risk exposure.
+
+**Formatting Instructions:**
+- Use clear headings, bullet points, and concise, professional language.
+- Reference relevant standards and frameworks in your analysis and recommendations.
+- Where possible, quantify risk and improvement using the provided weights and responses.
+
 """
     return call_groq(prompt, api_key, model)
 

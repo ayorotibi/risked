@@ -140,7 +140,7 @@ if st.session_state.saved:
         df = pd.DataFrame(coeff_data)
         df.to_csv("data_coeff.csv", index=False)
         #st.write("Here is the Security Profile Coefficient for your system")
-        st.markdown("<p class='subtitle'>Here is the Security Profile Coefficient for your system</p>", unsafe_allow_html=True)
+        st.markdown("<p class='subtitle'>Here is the Security Profile Coefficient (SPC) for your system</p>", unsafe_allow_html=True)
         st.dataframe(df)
 
     analyse()
