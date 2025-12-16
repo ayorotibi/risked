@@ -10,10 +10,13 @@ from joblib import Parallel, delayed
 import gc
 import os
 from itertools import combinations
+import itertools
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 # -----------------------------------------------------------------------------
-# Script Purpose and Inference Explanation
+# Script Purpose
 # -----------------------------------------------------------------------------
 # This script builds a Bayesian Network from dependency data, performs probabilistic
 # inference, and conducts sensitivity analysis. Inference is essential because it
@@ -171,7 +174,7 @@ status2.text("Loading coefficients...")
 
 
 if not os.path.exists(intermediate_file):
-    st.error(f"❌ The file '{intermediate_file}' was not found. You may have missed a step in the analysis sequence. Please ensure you have completed the dependency computation before proceeding.")
+    st.error("❌ The required file has not been generated or was not found. You may have missed a step in the analysis sequence. Please ensure you have completed the dependency computation before proceeding.")
     st.stop()
 else:
     response = pd.read_csv(intermediate_file)
@@ -179,7 +182,7 @@ else:
 
 coeff_file = 'data_coeff.csv'
 if not os.path.exists(coeff_file):
-    st.error("❌ The file 'data_coeff.csv' was not found. You may have missed a step in the analysis sequence. Please ensure you have uploaded or generated the coefficients file before proceeding.")
+    st.error("❌ The required file has not been generated or was not found. You may have missed a step in the analysis sequence. Please ensure you have uploaded or generated the coefficients file before proceeding.")
     st.stop()
 else:
     coeff = pd.read_csv(coeff_file)
@@ -267,7 +270,7 @@ status3 = st.empty()
 status3.text("Computing 3-way sensitivity analysis...")
 
 senseprob = []
-sensename = []
+sensename = [] 
 sensey1 = []
 sensey2 = []
 mask = response["dependants"] == "No"
@@ -357,13 +360,31 @@ progress5 = st.progress(0)
 status5 = st.empty()
 status5.text("Running parallel sensitivity analysis...")
 
+# def onefold_query(node, inference, root):
+#     try:
+#         result = inference.query(variables=[root], evidence={node: 0})
+#         prob = float(result.values[1])
+#         return {'node': node, 'root_prob_given_node0': prob}
+#     except Exception:
+#         return {'node': node, 'root_prob_given_node0': np.nan}
+    
+
 def onefold_query(node, inference, root):
+    result_dict = {'node': node}
+    # What-if: node fails (0)
     try:
-        result = inference.query(variables=[root], evidence={node: 0})
-        prob = float(result.values[1])
-        return {'node': node, 'root_prob_given_node0': prob}
+        result0 = inference.query(variables=[root], evidence={node: 0})
+        result_dict['root_prob_given_node0'] = float(result0.values[1])
     except Exception:
-        return {'node': node, 'root_prob_given_node0': np.nan}
+        result_dict['root_prob_given_node0'] = None
+    # What-if: node is perfect (1)
+    try:
+        result1 = inference.query(variables=[root], evidence={node: 1})
+        result_dict['root_prob_given_node1'] = float(result1.values[1])
+    except Exception:
+        result_dict['root_prob_given_node1'] = None
+    return result_dict
+
 
 analysis_nodes = [node for node in nodes if node != root]
 chunk_size = 1000
@@ -384,57 +405,46 @@ for i in range(0, len(analysis_nodes), chunk_size):
 progress5.progress(100)
 status5.text("Single Node sensitivity analysis completed.")
 
+def multi_node_sensitivity_analysis_baseline(inference, nodes, root_node):
+    # Exclude root, Process, Technology, People
+    exclude_nodes = {root_node, "Process", "Technology", "People"}
+    selectable_nodes = [n for n in nodes if n not in exclude_nodes]
+
+    st.header("Step 6: Multi-node Sensitivity Analysis (What-If)")
+    selected_nodes = st.multiselect(
+        "Select up to 5 nodes for sensitivity analysis:",
+        selectable_nodes,
+        max_selections=5
+    )
+
+    if selected_nodes:
+        n = len(selected_nodes)
+        results = []
+        # For each combination size (1 to n)
+        for r in range(1, n+1):
+            for node_subset in itertools.combinations(selected_nodes, r):
+                # Only test failure (0) for selected nodes in the subset
+                evidence = {node: 0 for node in node_subset}
+                try:
+                    result = inference.query(variables=[root_node], evidence=evidence)
+                    root_prob = float(result.values[1])  # Probability root is '1'
+                except Exception:
+                    root_prob = None
+                # Build row: all selected nodes, 1 if not in subset, 0 if in subset
+                row = {f"{node} = 0": (0 if node in node_subset else 1) for node in selected_nodes}
+                row["root_probability"] = root_prob
+                results.append(row)
+        results_df = pd.DataFrame(results)
+        st.write("Sensitivity Analysis Results (What-If):")
+        st.dataframe(results_df)
+        results_df.to_csv("multi_node_sensitivity_results.csv", index=False)
+        st.success("Results saved for final reports.")
 
 
-# st.header("Step 6: Two-Nodes Sensitivity Analysis")
-# progress6 = st.progress(0)
-# status6 = st.empty()
-# status6.text("Running parallel sensitivity analysis...")
-# def twofold_query(nodes_pair, inference, root):
-#     n1, n2 = nodes_pair
-#     try:
-#         # Set both nodes to state 0 (e.g., failure)
-#         result = inference.query(variables=[root], evidence={n1: 0, n2: 0})
-#         prob = float(result.values[1])
-#         return {'node1': n1, 'node2': n2, 'root_prob_given_node1_0_node2_0': prob}
-#     except Exception:
-#         return {'node1': n1, 'node2': n2, 'root_prob_given_node1_0_node2_0': np.nan}
+multi_node_sensitivity_analysis_baseline(inference, nodes, root)
 
-# # Prepare all unique pairs of nodes (no duplicates, no self-pairs)
-# analysis_nodes = [node for node in nodes if node != root]
-# node_pairs = list(combinations(analysis_nodes, 2))
 
-# chunk_size = 1000
-# results = []
-# for i in range(0, len(node_pairs), chunk_size):
-#     chunk = node_pairs[i:i+chunk_size]
-#     chunk_results = Parallel(n_jobs=-1)(
-#         delayed(twofold_query)(pair, inference, root) for pair in chunk
-#     )
-#     results.extend(chunk_results)
-#     chunk_df = pd.DataFrame(chunk_results)
-#     mode = 'w' if i == 0 else 'a'
-#     header = (i == 0)
-#     chunk_df.to_csv('two_points_sensitivity.csv', mode=mode, header=header, index=False)
-#     gc.collect()
-
-# progress6.progress(100)
-# status6.text("Two-Nodes Sensitivity Analysis completed.")
-
-# onefold_df = pd.read_csv('one_point_sensitivity.csv')
-# onefold_df = onefold_df.sort_values(by='root_prob_given_node0', ascending=False)
-# top10_df = onefold_df.head(10)
-
-# st.subheader("Top 10 Nodes by Sensitivity")
-# fig, ax = plt.subplots(figsize=(12, 6))
-# ax.bar(top10_df['node'], top10_df['root_prob_given_node0'], color='red')
-# plt.xticks(rotation=45, ha='right')
-# plt.ylabel(f"P({root}=1 | node=0)")
-# plt.title("Onefold Sensitivity Analysis (Top 10 Nodes)")
-# plt.tight_layout()
-# st.pyplot(fig)
-
-st.success("All analyses complete. Results saved as CSV and PNG files.")
+st.success("All analyses complete. Results saved for final report generation.")
 
 st.markdown("---")    
 if st.button("End Module"):
