@@ -39,7 +39,7 @@ st.markdown("""
 #### For more information and further conversation, please use the details below:
 1. Vist our webpage: http://crsmethods.com
 2. Email 📧 : info@crsmethods.com
-3. Phone ☎️ : +44 7577647884
+3. YouTube 📺 : https://youtu.be/pmok42bxWDk
 """)
 
 if st.button("Exit App"):
