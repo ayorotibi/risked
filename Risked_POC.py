@@ -16,6 +16,15 @@ st.sidebar.markdown(
 )
 
 
+# Sidebar PDF User Guide download link
+pdf_url = "https://drive.google.com/file/d/1yire8t7Nr29v517tBrxuKPeybYTOEh2q/view?usp=share_link"  
+
+st.sidebar.markdown(
+    f'[📄 Download the User Guide (PDF)]({pdf_url})',
+    unsafe_allow_html=True
+)
+
+
 # Custom CSS for styling
 st.markdown("""
     <style>
