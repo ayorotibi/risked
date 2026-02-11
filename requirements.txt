@@ -9,3 +9,8 @@ scipy
 joblib
 streamlit>=1.32,<2
 altair>=5,<7
+requests                                                         
+datetime                                        
+docx                                                             
+io                                                               
+os 
