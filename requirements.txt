@@ -14,7 +14,7 @@ pgmpy>=1.0.0
 plotly
 graphviz
 python-docx 
-networkx
+networkx>3.0
 seaborn
 jupyter
 scikit-learn
