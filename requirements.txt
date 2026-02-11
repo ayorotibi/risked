@@ -22,7 +22,6 @@ scipy
 requests
 flask
 joblib
-# Align Streamlit with modern Altair
 streamlit>=1.32,<2
 altair>=5,<7
 
