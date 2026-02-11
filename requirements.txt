@@ -10,7 +10,7 @@ tk
 watchdog
 matplotlib
 plot
-pgmpy==0.1.24
+pgmpy>=1.0.0
 plotly
 graphviz
 python-docx 
