@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 # from pgmpy.models import DiscreteBayesianNetwork
-from pgmpy.models import BayesianModel
+# from pgmpy.models import BayesianModel
+from pgmpy.models import BayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 from joblib import Parallel, delayed
@@ -312,31 +313,82 @@ for idx, row in dependency.iterrows():
 nodes = pd.unique(dependency[['rootnode', 'child_value']].values.ravel('K'))
 nodes = [n for n in nodes if pd.notna(n) and n != '']
 
-# model = DiscreteBayesianNetwork(edges)
-model = BayesianModel(edges)
+# NEW replacement 
+model = BayesianNetwork(edges)
+
 for node in nodes:
     child_rows = dependency[dependency['child_value'] == node]
     parents = child_rows['rootnode'].dropna().unique().tolist()
-    if not parents:
-        prob_row = dependency[dependency['child_value'] == node]
-        if not prob_row.empty:
-            p1 = prob_row.iloc[0]['posterior']
-            p0 = 1 - p1
-            cpd = TabularCPD(variable=node, variable_card=2, values=[[p0], [p1]])
-            model.add_cpds(cpd)
+
+    # Get probability for this node
+    prob_row = dependency[dependency['child_value'] == node]
+    if not prob_row.empty and 'posterior' in prob_row.columns:
+        p1 = float(prob_row.iloc[0]['posterior'])
     else:
+        p1 = 0.5
+    p0 = 1 - p1
+
+    if not parents:
+        # Root node CPD
+        cpd = TabularCPD(
+            variable=node,
+            variable_card=2,
+            values=[[p0], [p1]]
+        )
+    else:
+        # Child node CPD (pgmpy 1.0.0 requires full table)
         parent_card = [2] * len(parents)
-        cpd_rows = []
-        for _, row in child_rows.iterrows():
-            p1 = row['posterior']
-            p0 = 1 - p1
-            cpd_rows.append([p0, p1])
-        while len(cpd_rows) < 2 ** len(parents):
-            cpd_rows.append([0.5, 0.5])
-        values = list(map(list, zip(*cpd_rows)))
-        cpd = TabularCPD(variable=node, variable_card=2, values=values, evidence=parents, evidence_card=parent_card)
-        model.add_cpds(cpd)
-assert model.check_model(), "Model is invalid!"
+        num_cols = 2 ** len(parents)
+
+        # Same probability for all parent configurations
+        values = [
+            [p0] * num_cols,
+            [p1] * num_cols
+        ]
+
+        cpd = TabularCPD(
+            variable=node,
+            variable_card=2,
+            values=values,
+            evidence=parents,
+            evidence_card=parent_card
+        )
+
+    model.add_cpds(cpd)
+
+# Validate model
+try:
+    model.check_model()
+except Exception as e:
+    st.error(f"Bayesian Network validation failed: {e}")
+    st.stop()
+
+# model = BayesianModel(edges)
+
+#for node in nodes:
+#    child_rows = dependency[dependency['child_value'] == node]
+#    parents = child_rows['rootnode'].dropna().unique().tolist()
+#    if not parents:
+#        prob_row = dependency[dependency['child_value'] == node]
+#        if not prob_row.empty:
+#            p1 = prob_row.iloc[0]['posterior']
+#            p0 = 1 - p1
+#            cpd = TabularCPD(variable=node, variable_card=2, values=[[p0], [p1]])
+#            model.add_cpds(cpd)
+#    else:
+#        parent_card = [2] * len(parents)
+#        cpd_rows = []
+#        for _, row in child_rows.iterrows():
+#            p1 = row['posterior']
+#            p0 = 1 - p1
+#            cpd_rows.append([p0, p1])
+#        while len(cpd_rows) < 2 ** len(parents):
+#            cpd_rows.append([0.5, 0.5])
+#        values = list(map(list, zip(*cpd_rows)))
+#        cpd = TabularCPD(variable=node, variable_card=2, values=values, evidence=parents, evidence_card=parent_card)
+#        model.add_cpds(cpd)
+#assert model.check_model(), "Model is invalid!"
+
 progress4.progress(40)
 status4.text("Bayesian Network constructed.")
 
