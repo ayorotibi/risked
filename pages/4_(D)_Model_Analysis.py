@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-from pgmpy.models import DiscreteBayesianNetwork
+# from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.models import BayesianModel
 from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 from joblib import Parallel, delayed
@@ -311,7 +312,8 @@ for idx, row in dependency.iterrows():
 nodes = pd.unique(dependency[['rootnode', 'child_value']].values.ravel('K'))
 nodes = [n for n in nodes if pd.notna(n) and n != '']
 
-model = DiscreteBayesianNetwork(edges)
+# model = DiscreteBayesianNetwork(edges)
+model = BayesianModel(edges)
 for node in nodes:
     child_rows = dependency[dependency['child_value'] == node]
     parents = child_rows['rootnode'].dropna().unique().tolist()
